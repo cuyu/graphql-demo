@@ -1,5 +1,4 @@
-// Implement the server side code using GraphQL objects
-// TODO: Not ready yet
+// #### Implement the server side code using GraphQL objects ####
 var express = require('express');
 var graphqlHTTP = require('express-graphql');
 var {GraphQLSchema, GraphQLObjectType, GraphQLInputObjectType, GraphQLString, GraphQLID} = require('graphql');
@@ -26,8 +25,16 @@ const Query = new GraphQLObjectType({
     fields: {
         getMessage: {
             type: Msg,
+            args: {
+                id: {type: GraphQLID},
+            },
             resolve(args, context, info) {
-                console.log(info)
+                // If the resolve function is provided here, the corresponding function in `rootValue` will not be called
+                const id = context.id;
+                if (!fakeDatabase[id]) {
+                    throw new Error('no message exists with id ' + id);
+                }
+                return new Message(id, fakeDatabase[id]);
             }
         }
     }
@@ -38,14 +45,15 @@ const Mutation = new GraphQLObjectType({
     fields: {
         createMessage: {
             type: Msg,
-            resolve(args, context, info) {
-                console.log(info)
+            args: {
+                input: {type: MessageInput},
             },
         },
         updateMessage: {
             type: Msg,
-            resolve(args, context, info) {
-                console.log(info)
+            args: {
+                id: {type: GraphQLID},
+                input: {type: MessageInput},
             },
         },
     },
@@ -73,10 +81,7 @@ var fakeDatabase = {};
 
 var root = {
     getMessage: function ({id}) {
-        if (!fakeDatabase[id]) {
-            throw new Error('no message exists with id ' + id);
-        }
-        return new Message(id, fakeDatabase[id]);
+       console.log('Will not be called!');
     },
     createMessage: function ({input}) {
         // Create a random id for our "database".
